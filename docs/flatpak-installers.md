@@ -102,3 +102,34 @@ required** dialog, with an **OK** button and instructions to install it using th
 distribution package manager. Missing `flatpak-spawn` or a failed host-access
 check instead shows **Flatpak is inaccessible**. These are expected errors;
 technical diagnostics stay in the logs, not in a traceback presented to users.
+
+## Engines with external game data
+
+The selected installation directory (`$GAMEDIR`, usually under `~/Games`) is
+for external game data, mods and fonts. It is not the Flatpak deployment.
+Normal `extract`, `copy` and text-editing tasks can operate on these files.
+Do not write into the application's `/app` tree: it is read-only and managed
+by Flatpak.
+
+At launch Lutris grants read/write access to the saved game directory with a
+per-launch `--filesystem=PATH:rw` argument and uses `--cwd=PATH`. There is no
+persistent Flatpak override. An explicit `game.working_dir` overrides the
+working directory; relative paths are resolved against `$GAMEDIR`, and an
+external working directory also receives access. Paths must not contain `:`
+and `/` cannot be granted as a game directory. Imported apps without a saved
+game directory receive neither an automatic filesystem grant nor a cwd.
+
+For ai5-sdl2, put the game's files and its font together in `$GAMEDIR` and set
+`game.args: '--font "MS PGothic.ttf"'`. Ai5-sdl2 supports running from the game
+directory or receiving its path as an argument. If the archive has an extra
+subdirectory, set `game.working_dir` to the folder containing the game files.
+Only one `installer` list should be present, with `install_flatpak`, `extract`
+and `copy` tasks in order.
+
+When Lutris itself is sandboxed, the selected data directory must be accessible
+both to Lutris (for extraction/editing) and on the host at the same absolute
+path. Grant that directory to Lutris in its manifest or user permissions;
+private sandbox `/tmp` is not suitable. The runner's per-launch grant only
+controls the target application's access and does not expand Lutris's own
+permissions. For tests in the native application or AppImage, use a normal
+host directory such as `~/Games/yuno`.
