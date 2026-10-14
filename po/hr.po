@@ -6924,3 +6924,15 @@ msgstr ""
 #~ "spremanja u oblaku ili cjelozaslonskog sučelje za TV!\n"
 #~ "<a href='https://lutris.net/donate'>PODRŽITE NAS! https://lutris.net/"
 #~ "donate</a>"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Uredi YAML datoteku"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Prikaži „Uredi YAML datoteku” u kontekstnom izborniku igre"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Otvori konfiguraciju igre u zadanom uređivaču iz izbornika desne tipke miša."

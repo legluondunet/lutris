@@ -8245,3 +8245,15 @@ msgstr "Proton 版本「%s」缺少其 wine 可執行檔案，無法使用。"
 #: lutris/util/wine/wine.py:192
 msgid "The Wine version must be specified."
 msgstr "必須指定 Wine 版本。"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "編輯 YAML 檔案"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "在遊戲右鍵選單中顯示「編輯 YAML 檔案」"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "透過右鍵選單在預設編輯器中開啟遊戲設定。"

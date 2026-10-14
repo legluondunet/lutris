@@ -8590,3 +8590,15 @@ msgid ""
 msgstr ""
 "Den Wine-version du har valt har inte stöd för Fsync.\n"
 "Vänligen byt till en version som stöder Fsync."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Redigera YAML-fil"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Visa ”Redigera YAML-fil” i spelets snabbmeny"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Öppna spelkonfigurationen i standardredigeraren från högerklicksmenyn."

@@ -6960,3 +6960,15 @@ msgid ""
 msgstr ""
 "თქვენი ოს-ის ბირთვი fsync-სთვის დაპაჩული არაა. fsync-სთვის დაპაჩულ ოს-ის "
 "ბირთვს უნდა იყენებდეთ."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "YAML ფაილის რედაქტირება"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "თამაშის კონტექსტურ მენიუში „YAML ფაილის რედაქტირების“ ჩვენება"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "გახსენით თამაშის კონფიგურაცია ნაგულისხმევ რედაქტორში მარჯვენა ღილაკის მენიუდან."

@@ -8065,3 +8065,15 @@ msgstr "Версія Proton '%s' не мае выканальнага файла
 #: lutris/util/wine/wine.py:173
 msgid "The Wine version must be specified."
 msgstr "Версія Wine павінна быць пазначана."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Рэдагаваць файл YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Паказваць «Рэдагаваць файл YAML» у кантэкстным меню гульні"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Адкрывайце канфігурацыю гульні ў стандартным рэдактары праз меню правай кнопкі мышы."

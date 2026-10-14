@@ -8702,3 +8702,15 @@ msgstr "Wine 버전을 지정해야 합니다."
 #~ "<b>모든</b> 버전의  %s 을 삭제합니다.\n"
 #~ "\n"
 #~ "만약 하나의 버전만 삭제하려면 버전 관리를 이용하세요."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "YAML 파일 편집"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "게임의 바로 가기 메뉴에 “YAML 파일 편집” 표시"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "마우스 오른쪽 버튼 메뉴에서 기본 편집기로 게임 설정을 엽니다."

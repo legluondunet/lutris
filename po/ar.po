@@ -6050,3 +6050,15 @@ msgid ""
 msgstr ""
 "لا يدعم إصدار واين المحدَّد إف‌سنك.\n"
 "بدِّل لإصدار يدعم إف‌سنك."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "تحرير ملف YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "إظهار «تحرير ملف YAML» في قائمة سياق اللعبة"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "افتح ملف إعدادات اللعبة في المحرر الافتراضي من قائمة النقر بزر الفأرة الأيمن."

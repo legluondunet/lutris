@@ -6648,3 +6648,15 @@ msgstr ""
 
 #~ msgid "Custom Discord Client ID for passing status"
 #~ msgstr "Selbstdefinierter Discord-Client-ID für die Statusweitergabe"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "YAML-Datei bearbeiten"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "„YAML-Datei bearbeiten“ im Kontextmenü des Spiels anzeigen"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Die Spielkonfiguration über das Kontextmenü im Standardeditor öffnen."

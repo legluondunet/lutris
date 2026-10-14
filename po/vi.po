@@ -7302,3 +7302,15 @@ msgstr "Phiên bản proton '%s' thiếu khả năng thực thi Wine và không 
 #: lutris/util/wine/wine.py:176
 msgid "The Wine version must be specified."
 msgstr "Phiên bản Wine phải được chỉ định."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Chỉnh sửa tệp YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Hiển thị “Chỉnh sửa tệp YAML” trong menu ngữ cảnh của trò chơi"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Mở cấu hình trò chơi bằng trình soạn thảo mặc định từ menu chuột phải."

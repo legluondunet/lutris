@@ -8333,3 +8333,15 @@ msgstr "Wine-versjonen må oppgis."
 
 #~ msgid "<a href=\"\">Turn on Library Sync</a>"
 #~ msgstr "<a href=\"\">Slå på synkronisering av biblioteket</a>"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Rediger YAML-fil"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Vis «Rediger YAML-fil» i spillets kontekstmeny"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Åpne spillkonfigurasjonen i standardredigereren fra høyreklikkmenyen."

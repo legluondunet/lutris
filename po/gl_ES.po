@@ -8948,3 +8948,15 @@ msgstr ""
 #: lutris/util/wine/wine.py:195
 msgid "The Wine version must be specified."
 msgstr "Debe especificarse a versión de Wine."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Editar ficheiro YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Amosar «Editar ficheiro YAML» no menú contextual do xogo"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Abrir a configuración do xogo no editor predeterminado desde o menú contextual."

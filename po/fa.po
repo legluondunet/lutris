@@ -8328,3 +8328,15 @@ msgstr "باید نگارش واین مشخص شود."
 
 #~ msgid "No versions of Wine are installed."
 #~ msgstr "هیچ نگارش‌ای از واین نصب نشده است."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "ویرایش فایل YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "نمایش «ویرایش فایل YAML» در منوی زمینهٔ بازی"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "پیکربندی بازی را از منوی راست‌کلیک در ویرایشگر پیش‌فرض خود باز کنید."

@@ -9863,3 +9863,15 @@ msgstr "A versão do Wine precisa ser especificada."
 
 #~ msgid "Valor incorreto para o parâmetro 'src'"
 #~ msgstr "Valor incorreto para o parâmetro 'src'"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Editar arquivo YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Mostrar “Editar arquivo YAML” no menu de contexto do jogo"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Abra a configuração do jogo no editor padrão pelo menu de contexto."

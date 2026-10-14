@@ -9730,3 +9730,15 @@ msgstr "必须指定 Wine 版本。"
 #~ "并为新功能（如云存储或电视上的全屏界面）提供资金！\n"
 #~ "<a href='https://lutris.net/donate'>支持我们！https://lutris.net/donate</"
 #~ "a>"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "编辑 YAML 文件"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "在游戏右键菜单中显示“编辑 YAML 文件”"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "通过右键菜单在默认编辑器中打开游戏配置。"

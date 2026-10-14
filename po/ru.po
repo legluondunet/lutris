@@ -8843,3 +8843,15 @@ msgstr "Версия Wine"
 
 #~ msgid "64 bit"
 #~ msgstr "64-битный"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Редактировать файл YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Показывать «Редактировать файл YAML» в контекстном меню игры"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Открыть конфигурацию игры в редакторе по умолчанию через контекстное меню."

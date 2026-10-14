@@ -7939,3 +7939,15 @@ msgstr "Δεν έχουν εγκατασταθεί εκδόσεις του Wine.
 #~ msgstr ""
 #~ "Η έκδοση του Wine που έχετε επιλέξει δεν υποστηρίζει το Fsync.\n"
 #~ "Παρακαλούμε μεταβείτε σε μια έκδοση με δυνατότητα Fsync."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Επεξεργασία αρχείου YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Εμφάνιση της επιλογής «Επεξεργασία αρχείου YAML» στο μενού περιβάλλοντος του παιχνιδιού"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Ανοίξτε τη διαμόρφωση του παιχνιδιού στον προεπιλεγμένο επεξεργαστή σας από το μενού δεξιού κλικ."
