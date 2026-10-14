@@ -8334,6 +8334,8 @@ msgstr "Wine-versjonen må oppgis."
 #~ msgid "<a href=\"\">Turn on Library Sync</a>"
 #~ msgstr "<a href=\"\">Slå på synkronisering av biblioteket</a>"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak er nødvendig"

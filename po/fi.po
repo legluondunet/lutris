@@ -5740,6 +5740,8 @@ msgstr ""
 #~ "Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden "
 #~ "tietyn versio julkaisun."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak tarvitaan"

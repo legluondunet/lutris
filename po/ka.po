@@ -6961,6 +6961,8 @@ msgstr ""
 "თქვენი ოს-ის ბირთვი fsync-სთვის დაპაჩული არაა. fsync-სთვის დაპაჩულ ოს-ის "
 "ბირთვს უნდა იყენებდეთ."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "საჭიროა Flatpak"

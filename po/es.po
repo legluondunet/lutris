@@ -10394,6 +10394,8 @@ msgstr "Debe especificarse la versión de Wine."
 #~ msgid "Custom Discord Client ID for passing status"
 #~ msgstr "ID de cliente de Discord personalizado para pasar el estado"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Se necesita Flatpak"

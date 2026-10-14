@@ -8329,6 +8329,8 @@ msgstr "باید نگارش واین مشخص شود."
 #~ msgid "No versions of Wine are installed."
 #~ msgstr "هیچ نگارش‌ای از واین نصب نشده است."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak لازم است"

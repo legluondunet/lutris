@@ -8315,6 +8315,8 @@ msgstr "Proton sürümü '%s' eksik bu wine çalıştırılabilir ve kullanılam
 msgid "The Wine version must be specified."
 msgstr "Spesifik Wine sürümü olmalı"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak gerekli"

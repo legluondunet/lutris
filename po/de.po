@@ -6649,6 +6649,8 @@ msgstr ""
 #~ msgid "Custom Discord Client ID for passing status"
 #~ msgstr "Selbstdefinierter Discord-Client-ID für die Statusweitergabe"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak wird benötigt"

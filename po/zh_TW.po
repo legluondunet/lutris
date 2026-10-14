@@ -8246,6 +8246,8 @@ msgstr "Proton 版本「%s」缺少其 wine 可執行檔案，無法使用。"
 msgid "The Wine version must be specified."
 msgstr "必須指定 Wine 版本。"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "需要 Flatpak"

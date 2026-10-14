@@ -9722,6 +9722,8 @@ msgstr "必须指定 Wine 版本。"
 #~ "<a href='https://lutris.net/donate'>支持我们！https://lutris.net/donate</"
 #~ "a>"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "需要 Flatpak"

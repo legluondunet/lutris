@@ -8578,6 +8578,8 @@ msgstr ""
 msgid "The Wine version must be specified."
 msgstr "A versão do Wine deve ser especificada."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak é necessário"

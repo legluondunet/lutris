@@ -8066,6 +8066,8 @@ msgstr "Версія Proton '%s' не мае выканальнага файла
 msgid "The Wine version must be specified."
 msgstr "Версія Wine павінна быць пазначана."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Патрабуецца Flatpak"

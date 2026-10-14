@@ -6925,6 +6925,8 @@ msgstr ""
 #~ "<a href='https://lutris.net/donate'>PODRŽITE NAS! https://lutris.net/"
 #~ "donate</a>"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak je potreban"

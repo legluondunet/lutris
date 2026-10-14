@@ -7303,6 +7303,8 @@ msgstr "Phiên bản proton '%s' thiếu khả năng thực thi Wine và không 
 msgid "The Wine version must be specified."
 msgstr "Phiên bản Wine phải được chỉ định."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Cần có Flatpak"

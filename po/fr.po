@@ -8677,6 +8677,8 @@ msgstr "La version de Wine doit être spécifiée."
 #~ "Fsync.\n"
 #~ "Veuillez passer à une version compatible avec Fsync."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak est nécessaire"

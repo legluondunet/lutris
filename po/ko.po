@@ -8703,6 +8703,8 @@ msgstr "Wine 버전을 지정해야 합니다."
 #~ "\n"
 #~ "만약 하나의 버전만 삭제하려면 버전 관리를 이용하세요."
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak이 필요합니다"

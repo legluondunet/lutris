@@ -9864,6 +9864,8 @@ msgstr "A versão do Wine precisa ser especificada."
 #~ msgid "Valor incorreto para o parâmetro 'src'"
 #~ msgstr "Valor incorreto para o parâmetro 'src'"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Flatpak é necessário"

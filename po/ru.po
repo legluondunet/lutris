@@ -8844,6 +8844,8 @@ msgstr "Версия Wine"
 #~ msgid "64 bit"
 #~ msgstr "64-битный"
 
+
+
 #: lutris/installer/errors.py
 msgid "Flatpak is required"
 msgstr "Требуется Flatpak"
