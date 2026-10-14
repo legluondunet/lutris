@@ -1,3 +1,4 @@
+import os
 import shutil
 from gettext import gettext as _
 
@@ -7,13 +8,17 @@ from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
 
+def is_sandboxed() -> bool:
+    return os.path.exists("/.flatpak-info") or bool(os.environ.get("FLATPAK_ID"))
+
+
 @cache_single
 def get_executable() -> str | None:
     """Return the executable used to access Flatpak. None if Flatpak is not installed.
 
     In the case where Lutris is a Flatpak, we use flatpak-spawn.
     """
-    return shutil.which("flatpak-spawn") or shutil.which("flatpak")
+    return shutil.which("flatpak-spawn") if is_sandboxed() else shutil.which("flatpak")
 
 
 def is_installed() -> bool:
@@ -31,7 +36,6 @@ def get_command() -> list[str]:
     return [exe]
 
 
-@cache_single
 def get_installed_apps() -> list[dict[str, str]]:
     if not is_installed():
         return []
@@ -79,12 +83,16 @@ def get_run_command(
     return command
 
 
-def get_bare_run_command(arch: str | None = None, fcommand: str | None = None, branch: str | None = None) -> list[str]:
+def get_bare_run_command(
+    arch: str | None = None, fcommand: str | None = None, branch: str | None = None, installation: str | None = None
+) -> list[str]:
     """Return command to launch a Flatpak app, without the app-id at the end;
     this is the 'command' of the flatpak runner itself, and a program's
     appid must be appended to it."""
     command = get_command()
     command.append("run")
+    if installation in ("user", "system"):
+        command.append(f"--{installation}")
     if arch:
         command.append(f"--arch={arch}")
     if fcommand:

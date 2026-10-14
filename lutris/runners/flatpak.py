@@ -5,11 +5,12 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris.exceptions import GameConfigError, MissingExecutableError
-from lutris.monitored_command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
+from lutris.runners.commands.flatpak import install_flatpak as install_flatpak
 from lutris.runners.runner import Runner
 from lutris.util import flatpak as _flatpak
 from lutris.util import system
+from lutris.util.flatpak_install import FlatpakInstallError, uninstall_user
 from lutris.util.strings import split_arguments
 
 
@@ -20,7 +21,7 @@ class flatpak(Runner):
 
     description = _("Runs Flatpak applications")
     platform_dict = Runner.to_platform_dict([_("Linux")])
-    entry_point_option = "application"
+    entry_point_option = "appid"
     human_name = _("Flatpak")
     runnable_alone = False
     system_options_override = [{"option": "disable_runtime", "default": True}]
@@ -116,21 +117,23 @@ class flatpak(Runner):
         return os.path.join(self.install_locations[install_type or "user"], application, arch, fcommand, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
-        if not self.is_installed():
-            return False
-        command = MonitoredCommand(
-            [self.get_executable(), f"uninstall --app --noninteractive {app_id}"],
-            runner=self,
-            env=self.get_env(),
-            title=f"Uninstalling Flatpak App: {app_id}",
-        )
-        command.start()
+        # Explicit application removal only; never delete the Flatpak installation tree.
+        if self.game_config.get("install_type", "user") != "user":
+            raise GameConfigError(_("Only user Flatpak applications can be uninstalled from Lutris."))
+        try:
+            uninstall_user(
+                self.game_config.get("appid", ""),
+                self.game_config.get("arch", ""),
+                self.game_config.get("branch", ""),
+            )
+        except FlatpakInstallError as error:
+            raise GameConfigError(str(error)) from error
 
     def get_command(self):
         arch = self.game_config.get("arch", "")
         branch = self.game_config.get("branch", "")
         fcommand = self.game_config.get("fcommand", "")
-        return _flatpak.get_bare_run_command(arch, fcommand, branch)
+        return _flatpak.get_bare_run_command(arch, fcommand, branch, self.game_config.get("install_type", "user"))
 
     def play(self):
         appid = self.game_config.get("appid", "")
