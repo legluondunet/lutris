@@ -6,6 +6,8 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+import yaml
+
 from lutris.installer import commands
 from lutris.installer.errors import FlatpakSetupError
 from lutris.runners.commands import flatpak as tasks
@@ -196,6 +198,20 @@ class TestFlatpakInstall(TestCase):
 
 
 class TestFlatpakInstallerTaskFlow(TestCase):
+    def test_task_keeps_installer_script_serializable(self):
+        interpreter = MagicMock()
+        task_data = {"name": "install_flatpak", "file": "package"}
+        script = {"game": {"appid": APPID}, "installer": [{"task": task_data}]}
+        interpreter.installer = SimpleNamespace(runner="flatpak", script=script)
+        interpreter._get_task_runner_and_name.return_value = ("flatpak", "install_flatpak")
+        interpreter._substitute.side_effect = lambda value: value
+        with patch.object(commands, "import_task", return_value=MagicMock(return_value=None)) as import_task:
+            commands.CommandsMixin.task(interpreter, task_data)
+            self.assertIs(import_task.return_value.call_args.kwargs["game_config"], script["game"])
+            self.assertTrue(callable(import_task.return_value.call_args.kwargs["confirm"]))
+        self.assertEqual(task_data, {"name": "install_flatpak", "file": "package"})
+        self.assertEqual(yaml.safe_load(yaml.safe_dump(script)), script)
+
     def test_task_resolves_download_alias_and_default_application_id(self):
         interpreter = MagicMock()
         game_config = {"appid": APPID}
