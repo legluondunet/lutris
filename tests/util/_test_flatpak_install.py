@@ -7,6 +7,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from lutris.installer import commands
+from lutris.installer.errors import FlatpakSetupError
 from lutris.runners.commands import flatpak as tasks
 from lutris.util import flatpak
 from lutris.util import flatpak_install as install
@@ -37,6 +38,9 @@ class TestFlatpakInstall(TestCase):
         self.remotes = "flathub\n"
         self.host_patch = patch.object(install, "run_host", side_effect=self.host)
         self.command_patch = patch.object(flatpak, "get_command", return_value=["/usr/bin/flatpak"])
+        self.executable_patch = patch.object(flatpak, "get_executable", return_value="/usr/bin/flatpak")
+        self.executable_patch.start()
+        self.addCleanup(self.executable_patch.stop)
         self.host_patch.start()
         self.command_patch.start()
         self.addCleanup(self.host_patch.stop)
@@ -75,8 +79,9 @@ class TestFlatpakInstall(TestCase):
 
     def test_missing_host_or_denied_access_is_not_a_missing_app(self):
         with patch.object(install, "run_host", return_value=result(code=1, stderr="Access denied")):
-            with self.assertRaisesRegex(install.FlatpakInstallError, "host"):
+            with self.assertRaises(install.FlatpakPrerequisiteError) as caught:
                 install.prepare_install(APPID)
+            self.assertEqual(caught.exception.reason, "access")
 
     def test_rejects_option_injection(self):
         for appid in ("--system", "io.github.Brief --system", "io.github.Brief/stable"):
@@ -229,3 +234,35 @@ class TestFlatpakInstallerTaskFlow(TestCase):
             commands.CommandsMixin._monitor_task(interpreter, command)
         self.assertEqual(command.game_config, {})
         interpreter._iter_commands.assert_not_called()
+
+
+class TestFlatpakPrerequisiteMessages(TestCase):
+    def test_missing_native_flatpak_has_its_own_reason(self):
+        with (
+            patch.object(flatpak, "get_executable", return_value=None),
+            patch.object(flatpak, "is_sandboxed", return_value=False),
+            self.assertRaises(install.FlatpakPrerequisiteError) as caught,
+        ):
+            install.check_host()
+        self.assertEqual(caught.exception.reason, "missing")
+
+    def test_missing_sandbox_bridge_is_not_reported_as_missing_host_flatpak(self):
+        with (
+            patch.object(flatpak, "get_executable", return_value=None),
+            patch.object(flatpak, "is_sandboxed", return_value=True),
+            self.assertRaises(install.FlatpakPrerequisiteError) as caught,
+        ):
+            install.check_host()
+        self.assertEqual(caught.exception.reason, "access")
+
+    def test_install_task_produces_expected_dialog_error(self):
+        for reason in ("missing", "access"):
+            with (
+                self.subTest(reason=reason),
+                patch.object(tasks, "prepare_install", side_effect=install.FlatpakPrerequisiteError(reason)),
+                self.assertRaises(FlatpakSetupError) as caught,
+            ):
+                tasks.install_flatpak(APPID)
+            self.assertTrue(caught.exception.is_expected)
+            self.assertTrue(caught.exception.title)
+            self.assertNotIn("Traceback", str(caught.exception))

@@ -5,12 +5,12 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris.exceptions import GameConfigError, MissingExecutableError
-from lutris.runners import NonInstallableRunnerError
+from lutris.installer.errors import FlatpakSetupError
 from lutris.runners.commands.flatpak import install_flatpak as install_flatpak
 from lutris.runners.runner import Runner
 from lutris.util import flatpak as _flatpak
 from lutris.util import system
-from lutris.util.flatpak_install import FlatpakInstallError, uninstall_user
+from lutris.util.flatpak_install import FlatpakInstallError, FlatpakPrerequisiteError, uninstall_user
 from lutris.util.strings import split_arguments
 
 
@@ -94,12 +94,8 @@ class flatpak(Runner):
         return exe
 
     def install(self, install_ui_delegate, version=None, callback=None):
-        raise NonInstallableRunnerError(
-            _(
-                "Flatpak installation is not handled by Lutris.\n"
-                "Install Flatpak with the package provided by your distribution."
-            )
-        )
+        # Flatpak is a host prerequisite, not a runner Lutris can download.
+        raise FlatpakSetupError("access" if _flatpak.is_sandboxed() else "missing")
 
     def can_uninstall(self):
         return False
@@ -126,6 +122,8 @@ class flatpak(Runner):
                 self.game_config.get("arch", ""),
                 self.game_config.get("branch", ""),
             )
+        except FlatpakPrerequisiteError as error:
+            raise FlatpakSetupError(error.reason) from error
         except FlatpakInstallError as error:
             raise GameConfigError(str(error)) from error
 

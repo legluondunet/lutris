@@ -8676,3 +8676,19 @@ msgstr "La version de Wine doit être spécifiée."
 #~ "La version de Wine que vous avez sélectionnée ne prend pas en charge "
 #~ "Fsync.\n"
 #~ "Veuillez passer à une version compatible avec Fsync."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is required"
+msgstr "Flatpak est nécessaire"
+
+#: lutris/installer/errors.py
+msgid "To install this game, install the Flatpak package using your distribution's package manager, then restart the installation in Lutris."
+msgstr "Pour installer ce jeu, installez le paquet Flatpak à l’aide du gestionnaire de paquets de votre distribution, puis relancez l’installation dans Lutris."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is inaccessible"
+msgstr "Flatpak est inaccessible"
+
+#: lutris/installer/errors.py
+msgid "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+msgstr "Lutris ne peut pas accéder à Flatpak sur votre ordinateur. Pour Lutris Flatpak, vérifiez que flatpak-spawn est disponible et que l’accès à org.freedesktop.Flatpak est autorisé."

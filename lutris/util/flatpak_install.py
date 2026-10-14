@@ -13,6 +13,7 @@ from pathlib import Path
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.util import flatpak
+from lutris.util.log import logger
 
 FLATHUB_URL = "https://dl.flathub.org/repo/flathub.flatpakrepo"
 APP_ID_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]*){2,}")
@@ -20,6 +21,12 @@ APP_ID_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*(?:\.[A-Za-z_][A-Za-z0-9_-]
 
 class FlatpakInstallError(RuntimeError):
     """A host, repository, installation or removal error."""
+
+
+class FlatpakPrerequisiteError(FlatpakInstallError):
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(reason)
 
 
 def validate_appid(appid: str) -> None:
@@ -48,12 +55,17 @@ def _check(result: subprocess.CompletedProcess[str]) -> str:
 
 
 def check_host() -> None:
-    result = run_host(["--version"])
+    if not flatpak.get_executable():
+        reason = "access" if flatpak.is_sandboxed() else "missing"
+        raise FlatpakPrerequisiteError(reason)
+    try:
+        result = run_host(["--version"])
+    except FlatpakInstallError as error:
+        logger.error("Flatpak host check failed: %s", error)
+        raise FlatpakPrerequisiteError("access") from error
     if result.returncode:
-        raise FlatpakInstallError(
-            _("Flatpak is unavailable on the host, or Lutris is not allowed to access it: %s")
-            % (result.stderr.strip() or result.stdout.strip())
-        )
+        logger.error("Flatpak host check failed: %s", result.stderr.strip() or result.stdout.strip())
+        raise FlatpakPrerequisiteError("access")
 
 
 def get_user_ref(appid: str, arch: str = "", branch: str = "") -> str:

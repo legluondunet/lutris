@@ -4,9 +4,15 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import Any
 
-from lutris.installer.errors import ScriptingError
+from lutris.installer.errors import FlatpakSetupError, ScriptingError
 from lutris.monitored_command import MonitoredCommand
-from lutris.util.flatpak_install import FlatpakInstallError, InstallPlan, get_user_ref, prepare_install
+from lutris.util.flatpak_install import (
+    FlatpakInstallError,
+    FlatpakPrerequisiteError,
+    InstallPlan,
+    get_user_ref,
+    prepare_install,
+)
 
 
 class FlatpakInstallCommand(MonitoredCommand):
@@ -57,6 +63,8 @@ def install_flatpak(
         game_config = {}
     try:
         plan = prepare_install(appid, file, remote, arch, branch, confirm)
+    except FlatpakPrerequisiteError as error:
+        raise FlatpakSetupError(error.reason) from error
     except FlatpakInstallError as error:
         raise ScriptingError(str(error)) from error
     if plan.was_installed:
