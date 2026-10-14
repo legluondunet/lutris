@@ -10,9 +10,7 @@ from lutris.util.flatpak import is_game_data_directory
 class TestFlatpakGameDirectory(TestCase):
     def runner(self, directory="", **options):
         runner = object.__new__(flatpak)
-        runner._config = SimpleNamespace(
-            game_config={"appid": "technology.haniwa.ai5-sdl2", **options}
-        )
+        runner._config = SimpleNamespace(game_config={"appid": "technology.haniwa.ai5-sdl2", **options})
         runner.game_data = {"directory": directory}
         return runner
 
@@ -21,9 +19,7 @@ class TestFlatpakGameDirectory(TestCase):
             return runner.play()["command"]
 
     def test_external_data_and_quoted_font(self):
-        command = self.command(
-            self.runner("/home/test/Games/YU NO", args='--font "MS PGothic.ttf"')
-        )
+        command = self.command(self.runner("/home/test/Games/YU NO", args='--font "MS PGothic.ttf"'))
         self.assertEqual(
             command,
             [
@@ -46,9 +42,7 @@ class TestFlatpakGameDirectory(TestCase):
 
     def test_imported_application_has_no_automatic_grant(self):
         command = self.command(self.runner(install_type="system"))
-        self.assertEqual(
-            command, ["flatpak", "run", "--system", "technology.haniwa.ai5-sdl2"]
-        )
+        self.assertEqual(command, ["flatpak", "run", "--system", "technology.haniwa.ai5-sdl2"])
 
     def test_host_spawn_preserves_data_arguments(self):
         with patch(
@@ -102,9 +96,7 @@ class TestFlatpakGameDirectory(TestCase):
             self.assertTrue(is_game_data_directory("/home/test/Games/yuno", {}))
             self.assertFalse(is_game_data_directory("/var/lib/flatpak/app/example", {}))
             self.assertFalse(is_game_data_directory("/var/lib", {}))
-            self.assertFalse(
-                is_game_data_directory("~/.local/share/flatpak/app/example", {})
-            )
+            self.assertFalse(is_game_data_directory("~/.local/share/flatpak/app/example", {}))
             self.assertFalse(is_game_data_directory("~/.var/app/example", {}))
 
     def test_symlink_to_flatpak_storage_is_protected(self):
