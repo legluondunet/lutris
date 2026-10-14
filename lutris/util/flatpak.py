@@ -20,9 +20,7 @@ def is_game_data_directory(path: str, system_config: dict[str, str]) -> bool:
         return False
     directory = os.path.abspath(os.path.expanduser(path))
     resolved = os.path.realpath(directory)
-    if not is_removeable(directory, system_config) or not is_removeable(
-        resolved, system_config
-    ):
+    if not is_removeable(directory, system_config) or not is_removeable(resolved, system_config):
         return False
     home = os.path.expanduser("~")
     protected = (
@@ -78,9 +76,7 @@ def get_installed_apps() -> list[dict[str, str]]:
     for package in package_list.split("\n"):
         if package:
             try:
-                name, appid, version, branch, arch, origin, installation = (
-                    package.split("\t")
-                )
+                name, appid, version, branch, arch, origin, installation = package.split("\t")
             except ValueError:
                 logger.error("Not able to parse Flatpak output: %s", package)
                 continue
