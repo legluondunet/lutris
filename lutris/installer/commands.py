@@ -7,6 +7,7 @@ import os
 import shlex
 import shutil
 import threading
+from copy import deepcopy
 from gettext import gettext as _
 from pathlib import Path
 from queue import Empty
@@ -422,6 +423,9 @@ class CommandsMixin:
         The 'name' parameter is mandatory. If 'args' is provided it will be
         passed to the runner task.
         """
+        # Runner callbacks and configuration references are runtime-only.
+        # Never insert them into the installer script saved as YAML.
+        data = deepcopy(data)
         self._check_required_params("name", data, "task")
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
