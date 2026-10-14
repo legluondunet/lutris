@@ -42,8 +42,6 @@ class ScriptingError(LutrisError):
 class FlatpakSetupError(ScriptingError):
     """An expected prerequisite failure, presented without a technical traceback."""
 
-    is_expected = True
-
     def __init__(self, reason: str):
         if reason == "missing":
             self.title = _("Flatpak is required")
@@ -58,6 +56,7 @@ class FlatpakSetupError(ScriptingError):
                 "flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
             )
         super().__init__(message)
+        self.is_expected = True
 
 
 class MissingGameDependencyError(LutrisError):
