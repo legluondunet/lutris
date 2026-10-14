@@ -1,8 +1,6 @@
 import os
-import shutil
 from collections.abc import Callable
 from gettext import gettext as _
-from pathlib import Path
 
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.installer.errors import FlatpakSetupError
@@ -25,7 +23,6 @@ class flatpak(Runner):
     human_name = _("Flatpak")
     runnable_alone = False
     system_options_override = [{"option": "disable_runtime", "default": True}]
-    install_locations = {"system": "var/lib/flatpak/app/", "user": f"{Path.home()}/.local/share/flatpak/app/"}
 
     game_options = [
         {
@@ -105,12 +102,10 @@ class flatpak(Runner):
 
     @property
     def game_path(self):
-        if shutil.which("flatpak-spawn"):
-            return "/"
-        install_type, application, arch, fcommand, branch = (
-            self.game_config.get(key, "") for key in ("install_type", "appid", "arch", "fcommand", "branch")
-        )
-        return os.path.join(self.install_locations[install_type or "user"], application, arch, fcommand, branch)
+        # The directory saved by the installer contains external game data,
+        # not the deployment managed by Flatpak.
+        directory = self.game_data.get("directory")
+        return os.path.abspath(os.path.expanduser(directory)) if directory else ""
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
         # Explicit application removal only; never delete the Flatpak installation tree.
@@ -131,7 +126,25 @@ class flatpak(Runner):
         arch = self.game_config.get("arch", "")
         branch = self.game_config.get("branch", "")
         fcommand = self.game_config.get("fcommand", "")
-        return _flatpak.get_bare_run_command(arch, fcommand, branch, self.game_config.get("install_type", "user"))
+        command = _flatpak.get_bare_run_command(arch, fcommand, branch, self.game_config.get("install_type", "user"))
+        directory = self.game_path
+        working_dir = self.game_config.get("working_dir", "")
+        if working_dir:
+            working_dir = os.path.expanduser(working_dir)
+            if not os.path.isabs(working_dir):
+                working_dir = os.path.join(directory or os.path.expanduser("~"), working_dir)
+            working_dir = os.path.abspath(working_dir)
+        else:
+            working_dir = directory
+        for path in dict.fromkeys((directory, working_dir)):
+            if path:
+                # A colon is Flatpak's filesystem permission suffix separator.
+                if ":" in path or path == "/":
+                    raise GameConfigError("Flatpak game directories must not be '/' or contain ':'.")
+                command.append(f"--filesystem={path}:rw")
+        if working_dir:
+            command.append(f"--cwd={working_dir}")
+        return command
 
     def play(self):
         appid = self.game_config.get("appid", "")
