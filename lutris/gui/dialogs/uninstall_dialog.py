@@ -12,7 +12,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.utils import get_required_main_window, get_widget_children
-from lutris.util import datapath
+from lutris.util import datapath, flatpak
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import LibrarySyncer
 from lutris.util.log import logger
@@ -81,18 +81,29 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(g["id"] for g in get_games(filters={"directory": directory, "installed": 1}))
+            dir_users = set(
+                g["id"]
+                for g in get_games(filters={"directory": directory, "installed": 1})
+            )
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)
 
         for row in self.get_game_removal_rows():
             game = row.game
-            if game.runner_name == "flatpak":
+            if game.runner_name == "flatpak" and (
+                not game.config
+                or not flatpak.is_game_data_directory(
+                    game.directory, game.config.system_config
+                )
+            ):
                 row.can_delete_files = False
+                self.any_protected = self.any_protected or bool(game.directory)
                 continue
             if game.is_installed and game.directory:
-                if game.config and is_removeable(game.directory, game.config.system_config):
+                if game.config and is_removeable(
+                    game.directory, game.config.system_config
+                ):
                     shared_dir = is_shared(game.directory)
                     self.any_shared = self.any_shared or shared_dir
                     row.can_delete_files = not shared_dir
@@ -110,7 +121,12 @@ class UninstallDialog(Gtk.Dialog):
 
         for row in self.get_game_removal_rows():
             game = row.game
-            if game.runner_name != "flatpak" and game in new_games and game.is_installed and game.directory:
+            if (
+                game in new_games
+                and game.is_installed
+                and game.directory
+                and row.can_delete_files
+            ):
                 if game.directory not in folders_seen:
                     folders_seen.add(game.directory)
                     folders_to_size.append(game.directory)
@@ -140,16 +156,27 @@ class UninstallDialog(Gtk.Dialog):
             if count_uninstall == 1:
                 return _("Uninstall %s") % gtk_safe(to_uninstall[0].name)
 
-            return ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall) % count_uninstall
+            return (
+                ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall)
+                % count_uninstall
+            )
 
         if not to_uninstall:
             if count_remove == 1:
                 return _("Remove %s") % gtk_safe(to_remove[0].name)
 
-            return ngettext("Remove %d game", "Remove %d games", count_remove) % count_remove
+            return (
+                ngettext("Remove %d game", "Remove %d games", count_remove)
+                % count_remove
+            )
 
-        uninstall_part = ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall) % count_uninstall
-        remove_part = ngettext("remove %d game", "remove %d games", count_remove) % count_remove
+        uninstall_part = (
+            ngettext("Uninstall %d game", "Uninstall %d games", count_uninstall)
+            % count_uninstall
+        )
+        remove_part = (
+            ngettext("remove %d game", "remove %d games", count_remove) % count_remove
+        )
 
         return _("%s and %s") % (uninstall_part, remove_part)
 
@@ -159,7 +186,11 @@ class UninstallDialog(Gtk.Dialog):
         messages = []
 
         if to_uninstall:
-            messages.append(_("After you uninstall these games, you won't be able play them in Lutris."))
+            messages.append(
+                _(
+                    "After you uninstall these games, you won't be able play them in Lutris."
+                )
+            )
             messages.append(
                 _(
                     "Uninstalled games that you remove from the library will no longer appear in the "
@@ -167,7 +198,11 @@ class UninstallDialog(Gtk.Dialog):
                 )
             )
         else:
-            messages.append(_("After you remove these games, they will no longer appear in the 'Games' view."))
+            messages.append(
+                _(
+                    "After you remove these games, they will no longer appear in the 'Games' view."
+                )
+            )
 
         if self.any_shared:
             messages.append(
@@ -178,7 +213,11 @@ class UninstallDialog(Gtk.Dialog):
             )
 
         if self.any_protected:
-            messages.append(_("Some of the game directories cannot be removed because they are protected."))
+            messages.append(
+                _(
+                    "Some of the game directories cannot be removed because they are protected."
+                )
+            )
 
         if messages:
             self.message_label.set_markup("\n\n".join(messages))
@@ -212,7 +251,9 @@ class UninstallDialog(Gtk.Dialog):
 
             checkbox.set_active(set_count > 0)
             checkbox.set_inconsistent(set_count > 0 and unset_count > 0)
-            checkbox.set_visible((set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0))
+            checkbox.set_visible(
+                (set_count + unset_count) > 1 and (set_count > 0 or unset_count > 0)
+            )
 
         if not self._setting_all_checkboxes:
             self._setting_all_checkboxes = True
@@ -250,7 +291,9 @@ class UninstallDialog(Gtk.Dialog):
 
         self._apply_all_checkbox(self.remove_all_games_checkbox, update_row)
 
-    def _apply_all_checkbox(self, checkbox, row_updater: Callable[["GameRemovalRow", bool], None]):
+    def _apply_all_checkbox(
+        self, checkbox, row_updater: Callable[["GameRemovalRow", bool], None]
+    ):
         """Sets the state of the checkboxes on all rows to agree with 'checkbox';
         the actual change is performed by row_updater, so this can be used for
         either checkbox."""
@@ -271,17 +314,19 @@ class UninstallDialog(Gtk.Dialog):
     @GtkTemplate.Callback
     def on_remove_button_clicked(self, _widget) -> None:
         rows = list(self.get_game_removal_rows())
-        dirs_to_delete = list(set(row.game.directory for row in rows if row.delete_files))
+        dirs_to_delete = list(
+            set(row.game.directory for row in rows if row.delete_files)
+        )
 
         if dirs_to_delete:
             if len(dirs_to_delete) == 1:
-                question = _("Please confirm.\nEverything under <b>%s</b>\nwill be moved to the trash.") % gtk_safe(
-                    dirs_to_delete[0]
-                )
+                question = _(
+                    "Please confirm.\nEverything under <b>%s</b>\nwill be moved to the trash."
+                ) % gtk_safe(dirs_to_delete[0])
             else:
-                question = _("Please confirm.\nAll the files for %d games will be moved to the trash.") % len(
-                    dirs_to_delete
-                )
+                question = _(
+                    "Please confirm.\nAll the files for %d games will be moved to the trash."
+                ) % len(dirs_to_delete)
 
             dlg = QuestionDialog(
                 {
@@ -301,7 +346,11 @@ class UninstallDialog(Gtk.Dialog):
                 "They may also be used outside Lutris. Personal data will be kept."
             )
             dialog = QuestionDialog(
-                {"parent": self, "question": question, "title": _("Uninstall Flatpak applications?")}
+                {
+                    "parent": self,
+                    "question": question,
+                    "title": _("Uninstall Flatpak applications?"),
+                }
             )
             if dialog.result != Gtk.ResponseType.YES:
                 return
@@ -315,7 +364,11 @@ class UninstallDialog(Gtk.Dialog):
                     if not game_config:
                         raise RuntimeError(_("The game configuration is unavailable."))
                     config = game_config.game_config
-                    ref = (config.get("appid"), config.get("arch"), config.get("branch"))
+                    ref = (
+                        config.get("appid"),
+                        config.get("arch"),
+                        config.get("branch"),
+                    )
                     if ref not in removed:
                         row.game.runner.remove_game_data()
                         removed.add(ref)
@@ -412,7 +465,9 @@ class GameRemovalRow(Gtk.ListBoxRow):
         label = Gtk.Label(label=game.name, selectable=True)
         hbox.pack_start(label, False, False, 0)
 
-        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.START)
+        self.remove_from_library_checkbox = Gtk.CheckButton(
+            label=_("Remove from Library"), halign=Gtk.Align.START
+        )
         self.remove_from_library_checkbox.set_active(False)
         self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
         hbox.pack_end(self.remove_from_library_checkbox, False, False, 0)
@@ -421,11 +476,17 @@ class GameRemovalRow(Gtk.ListBoxRow):
             game_config = game.config
             config = game_config.game_config if game_config else {}
             if config.get("install_type", "user") == "user":
-                self.uninstall_flatpak_checkbox = Gtk.CheckButton(label=_("Uninstall Flatpak application"))
-                self.uninstall_flatpak_checkbox.set_active(bool(config.get("flatpak_installed_by_lutris", False)))
-                self.uninstall_flatpak_checkbox.connect("toggled", self.on_checkbox_toggled)
+                self.uninstall_flatpak_checkbox = Gtk.CheckButton(
+                    label=_("Uninstall Flatpak application")
+                )
+                self.uninstall_flatpak_checkbox.set_active(
+                    bool(config.get("flatpak_installed_by_lutris", False))
+                )
+                self.uninstall_flatpak_checkbox.connect(
+                    "toggled", self.on_checkbox_toggled
+                )
                 hbox.pack_end(self.uninstall_flatpak_checkbox, False, False, 0)
-        elif game.is_installed and self.game.directory:
+        if game.is_installed and self.game.directory:
             self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"))
             self.delete_files_checkbox.set_sensitive(False)
             self.delete_files_checkbox.set_active(False)
@@ -441,7 +502,9 @@ class GameRemovalRow(Gtk.ListBoxRow):
                 margin_right=6,
                 height_request=16,
             )
-            self.directory_label = Gtk.Label(halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START)
+            self.directory_label = Gtk.Label(
+                halign=Gtk.Align.START, selectable=True, valign=Gtk.Align.START
+            )
             self.directory_label.set_markup(self._get_directory_markup())
             dir_box.pack_start(self.directory_label, False, False, 0)
 
@@ -479,7 +542,10 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
     @property
     def uninstall_flatpak(self) -> bool:
-        return bool(self.uninstall_flatpak_checkbox and self.uninstall_flatpak_checkbox.get_active())
+        return bool(
+            self.uninstall_flatpak_checkbox
+            and self.uninstall_flatpak_checkbox.get_active()
+        )
 
     @property
     def delete_files(self) -> bool:

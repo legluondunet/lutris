@@ -12,6 +12,35 @@ def is_sandboxed() -> bool:
     return os.path.exists("/.flatpak-info") or bool(os.environ.get("FLATPAK_ID"))
 
 
+def is_game_data_directory(path: str, system_config: dict[str, str]) -> bool:
+    """Allow trashing external game data, never Flatpak deployments or app data."""
+    from lutris.util.system import is_removeable
+
+    if not path:
+        return False
+    directory = os.path.abspath(os.path.expanduser(path))
+    resolved = os.path.realpath(directory)
+    if not is_removeable(directory, system_config) or not is_removeable(
+        resolved, system_config
+    ):
+        return False
+    home = os.path.expanduser("~")
+    protected = (
+        os.path.join(home, ".local", "share", "flatpak"),
+        os.path.join(
+            os.environ.get("XDG_DATA_HOME") or os.path.join(home, ".local", "share"),
+            "flatpak",
+        ),
+        os.path.join(home, ".var", "app"),
+        "/var/lib/flatpak",
+    )
+    for root in protected:
+        root = os.path.realpath(root)
+        if os.path.commonpath((resolved, root)) in (resolved, root):
+            return False
+    return True
+
+
 @cache_single
 def get_executable() -> str | None:
     """Return the executable used to access Flatpak. None if Flatpak is not installed.
@@ -40,13 +69,18 @@ def get_installed_apps() -> list[dict[str, str]]:
     if not is_installed():
         return []
 
-    command = get_command() + ["list", "--columns=name,application,version,branch,arch,origin,installation"]
+    command = get_command() + [
+        "list",
+        "--columns=name,application,version,branch,arch,origin,installation",
+    ]
     package_list = read_process_output(command)
     packages = []
     for package in package_list.split("\n"):
         if package:
             try:
-                name, appid, version, branch, arch, origin, installation = package.split("\t")
+                name, appid, version, branch, arch, origin, installation = (
+                    package.split("\t")
+                )
             except ValueError:
                 logger.error("Not able to parse Flatpak output: %s", package)
                 continue
@@ -75,7 +109,10 @@ def is_app_installed(appid: str | None) -> bool:
 
 
 def get_run_command(
-    appid: str, arch: str | None = None, fcommand: str | None = None, branch: str | None = None
+    appid: str,
+    arch: str | None = None,
+    fcommand: str | None = None,
+    branch: str | None = None,
 ) -> list[str]:
     """Return command to launch a Flatpak app"""
     command = get_bare_run_command(arch, fcommand, branch)
@@ -84,7 +121,10 @@ def get_run_command(
 
 
 def get_bare_run_command(
-    arch: str | None = None, fcommand: str | None = None, branch: str | None = None, installation: str | None = None
+    arch: str | None = None,
+    fcommand: str | None = None,
+    branch: str | None = None,
+    installation: str | None = None,
 ) -> list[str]:
     """Return command to launch a Flatpak app, without the app-id at the end;
     this is the 'command' of the flatpak runner itself, and a program's

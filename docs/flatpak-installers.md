@@ -75,8 +75,14 @@ installed user application is reused without reinstalling or updating it.
 The uninstall dialog has a separate **Uninstall Flatpak application** checkbox,
 independent of removing the Lutris library entry. It is initially selected only
 for applications installed by this task. Explicit confirmation is required,
-because the same application may be used outside Lutris. Personal data and
+because the same application may be used outside Lutris. Flatpak application data and
 unrelated dependencies are retained; system installations are never removed.
+
+A separate **Delete Files** checkbox moves the external Lutris game directory
+(e.g. `~/Games/yuno`) to the trash after confirmation. It works independently
+of uninstalling the application. Shared and protected directories, Flatpak
+deployments and `~/.var/app` application data cannot be trashed through this
+checkbox. If the package removal fails, the selected data directory is kept.
 
 If uninstalling an application fails, its Lutris entry is retained. When removing
 multiple applications, some earlier removals may already have succeeded before
