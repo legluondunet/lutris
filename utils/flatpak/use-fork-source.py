@@ -55,6 +55,9 @@ result = {
         {
             "name": "lutris",
             "buildsystem": "meson",
+            # Flathub moves translations into a separate Locale extension.
+            # Its dangling links must not block Meson from installing our catalogs.
+            "build-commands": ["find /app/share/locale -xtype l -print -delete"],
             "sources": [{"type": "dir", "path": "lutris-source"}],
         },
     ],
