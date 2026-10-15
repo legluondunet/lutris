@@ -225,6 +225,41 @@ class TestFlatpakInstallerTaskFlow(TestCase):
             self.assertEqual(task.call_args.kwargs["file"], "/cache/package.flatpak")
             self.assertIs(task.call_args.kwargs["game_config"], game_config)
 
+    def test_yuno_task_dispatch_uses_downloaded_bundle_for_native_and_sandbox(self):
+        """YUNO's published task must resolve its file alias in either environment."""
+        for prefix in (["flatpak"], ["flatpak-spawn", "--host", "flatpak"]):
+            with self.subTest(prefix=prefix):
+                interpreter = MagicMock()
+                script = {
+                    "game": {"appid": "technology.haniwa.ai5-sdl2"},
+                    "files": [{"engine": "https://example.org/ai5-sdl2.flatpak"}],
+                    "installer": [
+                        {"task": {"name": "install_flatpak", "file": "engine"}},
+                        {"extract": {"file": "data", "dst": "$GAMEDIR"}},
+                        {"copy": {"src": "font", "dst": "$GAMEDIR"}},
+                    ],
+                }
+                interpreter.installer = SimpleNamespace(runner="flatpak", script=script)
+                interpreter._get_task_runner_and_name.return_value = ("flatpak", "install_flatpak")
+                interpreter._substitute.side_effect = (
+                    lambda value: "/cache/ai5-sdl2.flatpak" if value == "engine" else value
+                )
+                with (
+                    patch.object(commands, "import_task", return_value=MagicMock(return_value=None)) as task,
+                    patch.object(flatpak, "get_command", return_value=list(prefix)),
+                ):
+                    commands.CommandsMixin.task(interpreter, script["installer"][0]["task"])
+                    kwargs = task.return_value.call_args.kwargs
+                    self.assertEqual(kwargs["appid"], "technology.haniwa.ai5-sdl2")
+                    self.assertEqual(kwargs["file"], "/cache/ai5-sdl2.flatpak")
+                    self.assertEqual(flatpak.get_command(), prefix)
+                self.assertEqual(script["installer"][0]["task"]["file"], "engine")
+                self.assertEqual(
+                    [next(iter(step)) for step in script["installer"]],
+                    ["task", "extract", "copy"],
+                )
+                self.assertEqual(yaml.safe_load(yaml.safe_dump(script)), script)
+
     def test_monitor_records_success_before_advancing_installer(self):
         interpreter = MagicMock()
         command = object.__new__(tasks.FlatpakInstallCommand)
