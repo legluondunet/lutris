@@ -452,6 +452,16 @@ if fix_ayatana_libraries(ayatana) != 2:
     sys.exit("Expected Ayatana Ido and Indicator modules in shared packaging")
 ayatana_manifest.write_text(json.dumps(ayatana, indent=2) + "\n")
 
+# Keep application libraries visible when overriding the runtime search path.
+old_library_path = "--env=LD_LIBRARY_PATH=/usr/lib/extensions/vulkan/gamescope/lib"
+if updated.count(old_library_path) != 1:
+    sys.exit("Expected exactly one gamescope library path override")
+updated = updated.replace(
+    old_library_path,
+    "--env=LD_LIBRARY_PATH=/app/lib:/usr/lib/extensions/vulkan/gamescope/lib",
+    1,
+)
+
 # Provide the host-command bridge explicitly for runner integration tests.
 if "--talk-name=org.freedesktop.Flatpak" not in updated:
     sys.exit("The manifest must allow host Flatpak commands")

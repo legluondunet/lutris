@@ -103,7 +103,7 @@ jobs:
       - name: Verify packaged runner prerequisites
         working-directory: flatpak-packaging
         run: |
-          flatpak-builder --run build-dir net.lutris.Lutris.yml sh -c 'command -v flatpak-spawn && lutris --version'
+          flatpak-builder --run build-dir net.lutris.Lutris.yml env LD_LIBRARY_PATH=/app/lib:/usr/lib/extensions/vulkan/gamescope/lib sh -c 'test -r /app/lib/libjpeg.so.8 && command -v flatpak-spawn && lutris --version'
 
       - name: Export standalone Flatpak bundle
         working-directory: flatpak-packaging
