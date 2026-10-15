@@ -1,0 +1,132 @@
+name: Build Flatpak runner test
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/flatpak.yml"
+      - "utils/flatpak/**"
+      - "meson.build"
+      - "pyproject.toml"
+      - "lutris/**"
+      - "bin/**"
+      - "share/**"
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flatpak:
+    name: Flatpak (x86_64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout Lutris fork
+        uses: actions/checkout@v4
+        with:
+          path: lutris-source
+
+      - name: Checkout Flathub packaging
+        uses: actions/checkout@v4
+        with:
+          repository: flathub/net.lutris.Lutris
+          ref: 5a74a8b668f7b436436c0696d1fb4d9b535d7a00
+          path: flatpak-packaging
+
+      - name: Install Flatpak builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder rsync python3-yaml
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install prebuilt Flathub Lutris base
+        shell: bash
+        run: |
+          flatpak install --user --assumeyes flathub app/net.lutris.Lutris/x86_64/stable
+          flatpak info --user --show-metadata net.lutris.Lutris//stable > flatpak-packaging/base-metadata.ini
+          flatpak info --user net.lutris.Lutris//stable > flatpak-packaging/base-info.txt
+          flatpak info --user --show-commit net.lutris.Lutris//stable >> flatpak-packaging/base-info.txt
+
+      - name: Prepare fork source in packaging tree
+        shell: bash
+        run: |
+          mkdir -p flatpak-packaging/lutris-source
+          rsync -a --exclude=.git --exclude=dist/ --exclude=.github/ \
+            lutris-source/ flatpak-packaging/lutris-source/
+          # Stamp before the source tree is passed to the offline builder.
+          python3 lutris-source/utils/get-build-commit.py > flatpak-packaging/lutris-source/lutris/build_commit.txt
+          python3 lutris-source/utils/flatpak/use-fork-source.py \
+            flatpak-packaging/net.lutris.Lutris.yml flatpak-packaging/base-metadata.ini
+
+      - name: Download Flatpak sources and SDKs
+        working-directory: flatpak-packaging
+        shell: bash
+        run: |
+          # Dependencies are reused from the installed Flathub app.
+          # Download only the matching SDK and the host bridge sources.
+          for attempt in 1 2 3 4; do
+            if flatpak-builder --download-only --user --install-deps-from=flathub --assumeyes build-dir net.lutris.Lutris.yml; then
+              exit 0
+            fi
+            if (( attempt == 4 )); then
+              echo "Flatpak dependency download failed after 4 attempts" >&2
+              exit 1
+            fi
+            echo "Dependency download failed (attempt ${attempt}/4); retrying in 20 seconds..."
+            sleep 20
+          done
+
+      - name: Build Flatpak
+        working-directory: flatpak-packaging
+        shell: bash
+        run: |
+          # Compile once: compiler errors are not transient download failures.
+          # Keep full diagnostics in an artifact and a concise tail in Actions.
+          if flatpak-builder --force-clean --disable-download --user --assumeyes \
+            --default-branch=runner-tests --repo=repo build-dir net.lutris.Lutris.yml >flatpak-build.log 2>&1; then
+            tail -n 100 flatpak-build.log
+          else
+            status=$?
+            tail -n 250 flatpak-build.log
+            echo "::error::Flatpak compilation failed (exit ${status}); see flatpak-build.log"
+            exit "$status"
+          fi
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutris-flatpak-build-diagnostics
+          path: |
+            flatpak-packaging/base-info.txt
+            flatpak-packaging/base-metadata.ini
+            flatpak-packaging/flatpak-build.log
+            flatpak-packaging/net.lutris.Lutris.yml
+            flatpak-packaging/.flatpak-builder/build/**/meson-logs/meson-log.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Verify packaged runner prerequisites
+        working-directory: flatpak-packaging
+        run: |
+          flatpak-builder --run build-dir net.lutris.Lutris.yml env LD_LIBRARY_PATH=/app/lib:/usr/lib/extensions/vulkan/gamescope/lib sh -c 'command -v flatpak-spawn && python3 -c "from PIL import Image" && lutris --version'
+
+      - name: Export standalone Flatpak bundle
+        working-directory: flatpak-packaging
+        run: flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo repo Lutris-runner-tests-x86_64.flatpak net.lutris.Lutris runner-tests
+
+      - name: Verify bundle
+        run: test -s flatpak-packaging/Lutris-runner-tests-x86_64.flatpak
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutris-flatpak-runner-tests-x86_64
+          path: flatpak-packaging/Lutris-runner-tests-x86_64.flatpak
+          if-no-files-found: error
+          retention-days: 14
+
+
