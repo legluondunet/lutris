@@ -8314,3 +8314,15 @@ msgstr "Proton sürümü '%s' eksik bu wine çalıştırılabilir ve kullanılam
 #: lutris/util/wine/wine.py:173
 msgid "The Wine version must be specified."
 msgstr "Spesifik Wine sürümü olmalı"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "YAML dosyasını düzenle"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Oyunun bağlam menüsünde “YAML dosyasını düzenle” seçeneğini göster"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Sağ tıklama menüsünden oyun yapılandırmasını varsayılan düzenleyicinizde açın."

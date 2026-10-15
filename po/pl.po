@@ -8077,3 +8077,15 @@ msgstr "Nie zainstalowano żadnej wersji Wine."
 
 #~ msgid "{seconds} second{'s' if seconds > 1 else ''} "
 #~ msgstr "{seconds} sek. "
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Edytuj plik YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Pokazuj „Edytuj plik YAML” w menu kontekstowym gry"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Otwórz konfigurację gry w domyślnym edytorze z menu kontekstowego."

@@ -7397,3 +7397,15 @@ msgstr ""
 #~ "cloudopslag en een beeldvullende tv-modus.\n"
 #~ "<a href='https://lutris.net/donate'>ONDERSTEUN ONS! https://lutris.net/"
 #~ "donate</a>"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "YAML-bestand bewerken"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "‘YAML-bestand bewerken’ tonen in het contextmenu van het spel"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Open de spelconfiguratie in de standaardeditor via het contextmenu."

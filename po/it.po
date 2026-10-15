@@ -8470,3 +8470,15 @@ msgstr "Non è installata alcuna versione di Wine."
 
 #~ msgid "Cache"
 #~ msgstr "Cache"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Modifica file YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Mostra «Modifica file YAML» nel menu contestuale del gioco"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Apri la configurazione del gioco nell’editor predefinito dal menu contestuale."

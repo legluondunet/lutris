@@ -10393,3 +10393,15 @@ msgstr "Debe especificarse la versión de Wine."
 
 #~ msgid "Custom Discord Client ID for passing status"
 #~ msgstr "ID de cliente de Discord personalizado para pasar el estado"
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Editar archivo YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Mostrar «Editar archivo YAML» en el menú contextual del juego"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Abrir la configuración del juego en el editor predeterminado desde el menú contextual."

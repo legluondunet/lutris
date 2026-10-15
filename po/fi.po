@@ -5739,3 +5739,15 @@ msgstr ""
 #~ "\n"
 #~ "Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden "
 #~ "tietyn versio julkaisun."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Muokkaa YAML-tiedostoa"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Näytä ”Muokkaa YAML-tiedostoa” pelin pikavalikossa"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Avaa pelin asetukset oletuseditorissa hiiren oikean painikkeen valikosta."
