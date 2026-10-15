@@ -1,0 +1,74 @@
+name: Flatpak YUNO integration package
+
+on:
+  push:
+    branches:
+      - ci/flatpak-yuno-package
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Lutris fork
+        uses: actions/checkout@v4
+
+      - name: Install Flatpak build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder python3-yaml
+          sudo flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Get official Flathub packaging
+        run: git clone --depth=1 https://github.com/flathub/net.lutris.Lutris.git flatpak-packaging
+
+      - name: Point manifest at this tested Lutris commit
+        env:
+          LUTRIS_COMMIT: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+
+          manifest = Path("flatpak-packaging/net.lutris.Lutris.yml")
+          data = yaml.safe_load(manifest.read_text())
+          assert data["id"] == "net.lutris.Lutris"
+          assert "org.freedesktop.Flatpak" in " ".join(data["finish-args"])
+          modules = [m for m in data["modules"] if isinstance(m, dict) and m.get("name") == "lutris"]
+          assert len(modules) == 1
+          sources = [s for s in modules[0]["sources"] if s.get("type") == "git"]
+          assert len(sources) == 1
+          sources[0]["url"] = "https://github.com/legluondunet/lutris.git"
+          sources[0].pop("tag", None)
+          sources[0].pop("branch", None)
+          sources[0]["commit"] = os.environ["LUTRIS_COMMIT"]
+          manifest.write_text(yaml.safe_dump(data, sort_keys=False))
+          print("Lutris source commit:", os.environ["LUTRIS_COMMIT"])
+          PY
+
+      - name: Install required runtimes
+        run: |
+          flatpak-builder --install-deps-from=flathub --assumeyes --user flatpak-build flatpak-packaging/net.lutris.Lutris.yml
+
+      - name: Build Lutris Flatpak
+        run: |
+          flatpak-builder --force-clean --disable-rofiles-fuse --repo=flatpak-repo flatpak-build flatpak-packaging/net.lutris.Lutris.yml
+
+      - name: Verify host bridge in built sandbox
+        run: |
+          flatpak build flatpak-build sh -c 'command -v flatpak-spawn'
+          flatpak build flatpak-build sh -c 'flatpak-spawn --help >/dev/null'
+
+      - name: Export test bundle
+        run: flatpak build-bundle flatpak-repo lutris-flatpak-yuno-test.flatpak net.lutris.Lutris
+
+      - name: Upload test bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: lutris-flatpak-yuno-test
+          path: lutris-flatpak-yuno-test.flatpak
+          retention-days: 7
