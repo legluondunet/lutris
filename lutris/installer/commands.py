@@ -6,22 +6,28 @@ import multiprocessing
 import os
 import shlex
 import shutil
+import threading
+from copy import deepcopy
 from gettext import gettext as _
 from pathlib import Path
+from queue import Empty
+from threading import Event
 
 from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
+from lutris.gui.dialogs import QuestionDialog
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import InvalidRunnerError, import_runner, import_task
+from lutris.runners.commands.flatpak import FlatpakInstallCommand
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.gog import apply_gog_config, find_gog_config_dir
 from lutris.util.gogdl import clear_stale_manifest, run_gogdl
-from lutris.util.jobs import schedule_repeating_at_idle
+from lutris.util.jobs import schedule_at_idle, schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 
@@ -214,7 +220,7 @@ class CommandsMixin:
             merge_single = "nomerge" not in data
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
-            self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
+            self._extract_with_progress(filename, dest_path, merge_single, extractor)
         logger.debug("Extract done")
 
     def input_menu(self, data):
@@ -417,6 +423,9 @@ class CommandsMixin:
         The 'name' parameter is mandatory. If 'args' is provided it will be
         passed to the runner task.
         """
+        # Runner callbacks and configuration references are runtime-only.
+        # Never insert them into the installer script saved as YAML.
+        data = deepcopy(data)
         self._check_required_params("name", data, "task")
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
@@ -433,6 +442,12 @@ class CommandsMixin:
             if task_name == "wineexec":
                 data["env"] = self.script_env
 
+        flatpak_install = runner_name == "flatpak" and task_name == "install_flatpak"
+        if flatpak_install:
+            game_config = self.installer.script.setdefault("game", {})
+            for key in ("appid", "arch", "branch"):
+                data.setdefault(key, game_config.get(key, ""))
+
         for key in data:
             value = data[key]
             if value is None and task_name == "set_regedit":
@@ -447,6 +462,10 @@ class CommandsMixin:
                 value = self._substitute(data[key])
             data[key] = value
 
+        if flatpak_install:
+            data["game_config"] = game_config
+            data["confirm"] = self._confirm_flatpak_install
+
         task = import_task(runner_name, task_name)
         command = task(**data)
         if isinstance(command, MonitoredCommand):
@@ -457,12 +476,45 @@ class CommandsMixin:
             return "STOP"
         return None
 
+    def _confirm_flatpak_install(self, question):
+        from gi.repository import Gtk
+
+        ready = threading.Event()
+        accepted = False
+        error = None
+
+        def ask():
+            nonlocal accepted, error
+            try:
+                if not getattr(self, "cancelled", False):
+                    dialog = QuestionDialog({"question": question, "title": _("Flatpak installation")})
+                    accepted = dialog.result == Gtk.ResponseType.YES
+            except Exception as ex:
+                error = ex
+            finally:
+                ready.set()
+
+        # Installer commands run on an AsyncCall worker. GTK dialogs must run
+        # on the main loop; let only that worker wait for the user's answer.
+        if threading.current_thread() is threading.main_thread():
+            ask()
+        else:
+            schedule_at_idle(ask)
+            while not ready.wait(0.1):
+                if getattr(self, "cancelled", False):
+                    return False
+        if error:
+            raise error
+        return accepted
+
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
             if command.return_code not in (str(command.accepted_return_code), "0"):
                 raise ScriptingError(_("Command exited with code %s") % command.return_code)
 
+            if isinstance(command, FlatpakInstallCommand):
+                command.finish_installation()
             self._iter_commands()
             return False
         return True  # keep checking
@@ -557,15 +609,56 @@ class CommandsMixin:
             file_path = self._substitute(fileid)
         return file_path
 
-    def _killable_process(self, func, *args, **kwargs):
-        """Run function `func` in a separate, killable process."""
+    def _extract_with_progress(self, *args):
+        """Forward worker progress to the installation window in the parent process."""
+
+        def on_progress(percent):
+            self.interpreter_ui_delegate.report_progress(percent / 100.0, f"{percent} %")
+
+        try:
+            return self._killable_process(extract.extract_archive, *args, progress_callback=on_progress)
+        finally:
+            self.interpreter_ui_delegate.report_progress(None)
+
+    def _killable_process(self, func, *args, progress_callback=None, **kwargs):
+        """Run function in a killable worker, optionally forwarding progress through IPC."""
+        if progress_callback:
+            with multiprocessing.Manager() as manager:
+                progress_queue = manager.Queue()
+                kwargs["progress_callback"] = progress_queue.put
+                return self._run_killable_process(func, args, kwargs, progress_queue, progress_callback)
+        return self._run_killable_process(func, args, kwargs)
+
+    def _run_killable_process(self, func, args, kwargs, progress_queue=None, progress_callback=None):
         with multiprocessing.Pool(1) as process:
             result_obj = process.apply_async(func, args, kwargs)
-            self.abort_current_task = process.terminate
-            result = result_obj.get()  # Wait process end & re-raise exceptions
-            self.abort_current_task = None
-            logger.debug("Process %s returned: %s", func, result)
-            return result
+            cancelled = Event()
+
+            def abort():
+                cancelled.set()
+                process.terminate()
+
+            self.abort_current_task = abort
+            try:
+                if progress_queue is not None:
+                    while not result_obj.ready():
+                        if cancelled.is_set():
+                            raise ScriptingError(_("Installation cancelled"))
+                        try:
+                            progress_callback(progress_queue.get(timeout=0.1))
+                        except Empty:
+                            pass
+                result = result_obj.get()  # Re-raise extraction errors.
+                if progress_queue is not None:
+                    while True:
+                        try:
+                            progress_callback(progress_queue.get_nowait())
+                        except Empty:
+                            break
+                logger.debug("Process %s returned: %s", func, result)
+                return result
+            finally:
+                self.abort_current_task = None
 
     def _extract_innosetup(self, file_id):
         self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
@@ -1023,7 +1116,7 @@ class CommandsMixin:
         file_path = self._get_file_path(file_id)
 
         # Extract the archive (e.g. tar.gz wrapper)
-        self._killable_process(extract.extract_archive, file_path, dst, True)
+        self._extract_with_progress(file_path, dst, True)
 
         # Check if any extracted .exe is an installer
         for entry in os.listdir(dst):
